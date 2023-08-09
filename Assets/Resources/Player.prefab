@@ -49,6 +49,7 @@ MonoBehaviour:
   playerposition: 0
   waiting: 0
   turnon: 0
+  chosenTile: {fileID: 0}
 --- !u!114 &4294295741159899492
 MonoBehaviour:
   m_ObjectHideFlags: 0

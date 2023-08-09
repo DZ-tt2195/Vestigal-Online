@@ -20,16 +20,18 @@ public class Player : MonoBehaviourPunCallbacks
 
     public bool waiting;
     public bool turnon;
-    public TileData chosenTile;
+    [HideInInspector] public TileData chosenTile;
 
     private void Awake()
     {
+        pv = GetComponent<PhotonView>();
         resign = GameObject.Find("Resign Button").GetComponent<Button>();
         storePlayers = GameObject.Find("Store Players").transform;
     }
 
     private void Start()
     {
+        this.name = pv.Owner.NickName;
         this.transform.SetParent(storePlayers);
     }
 
@@ -52,6 +54,15 @@ public class Player : MonoBehaviourPunCallbacks
     void TurnOver()
     {
         turnon = false;
+    }
+
+    [PunRPC]
+    public IEnumerator WaitForPlayer(string playername)
+    {
+        waiting = true;
+        Manager.instance.instructions.text = $"Waiting for {playername}...";
+        while (waiting)
+            yield return null;
     }
 
     [PunRPC]
@@ -87,6 +98,7 @@ public class Player : MonoBehaviourPunCallbacks
     {
         if (availablePawns.Count > 0)
         {
+            Manager.instance.instructions.text = "Choose a pawn to move.";
             for (int i = 0; i < availablePawns.Count; i++)
                 availablePawns[i].currenttile.EnableButton(this);
 
@@ -94,8 +106,11 @@ public class Player : MonoBehaviourPunCallbacks
             while (chosenTile == null)
                 yield return null;
 
+            for (int i = 0; i < availablePawns.Count; i++)
+                availablePawns[i].currenttile.DisableButton();
+
             Pawn chosenPawn = chosenTile.pawnHere;
-            yield return chosenPawn.Move();
+            yield return chosenPawn.Move(this);
 
             if (chosenTile == chosenPawn.currenttile)
             {
