@@ -23,12 +23,14 @@ public class Pawn : MonoBehaviour
         if (currenttile != null)
             currenttile.pawnHere = null;
 
-        currenttile = Manager.instance.listofTiles[position];
-        currenttile.DestroyPawnOnThis();
-        currenttile.pawnHere = this;
+        TileData newTile = Manager.instance.listofTiles[position];
+        newTile.DestroyPawnOnThis();
+        newTile.pawnHere = this;
 
-        this.transform.SetParent(currenttile.transform);
+        this.transform.SetParent(newTile.transform);
         this.transform.SetSiblingIndex(1);
+        currenttile = newTile;
+
         this.transform.localScale = new Vector2(0.3f, 0.3f);
         this.GetComponent<RectTransform>().localPosition = new Vector2(0, 0);
         this.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 0);
@@ -39,17 +41,19 @@ public class Pawn : MonoBehaviour
         if (tile == null)
             return null;
 
-        PawnColor compare = tile.pawnHere.myColor;
+        if (tile.pawnHere != null)
+        {
+            PawnColor compare = tile.pawnHere.myColor;
 
-        if (myColor == PawnColor.White && (compare == PawnColor.White || compare == PawnColor.Black))
-            return null;
-        else if (myColor == PawnColor.Black && (compare == PawnColor.White || compare == PawnColor.Black))
-            return null;
-        else if (myColor == PawnColor.Blue && (compare == PawnColor.Blue || compare == PawnColor.Red))
-            return null;
-        else if (myColor == PawnColor.Red && (compare == PawnColor.Blue || compare == PawnColor.Red))
-            return null;
-
+            if (myColor == PawnColor.White && (compare == PawnColor.White || compare == PawnColor.Black))
+                return null;
+            else if (myColor == PawnColor.Black && (compare == PawnColor.White || compare == PawnColor.Black))
+                return null;
+            else if (myColor == PawnColor.Blue && (compare == PawnColor.Blue || compare == PawnColor.Red))
+                return null;
+            else if (myColor == PawnColor.Red && (compare == PawnColor.Blue || compare == PawnColor.Red))
+                return null;
+        }
         return tile;
     }
 
@@ -70,12 +74,16 @@ public class Pawn : MonoBehaviour
                 break;
         }
 
-        for (int i = 0; i<distance; i++)
+        do
         {
-            if (nextTile.pawnHere != null)
-                return null;
             nextTile = Manager.instance.GetPosition(nextTile.row + row, nextTile.column + col);
+            if (nextTile == null)
+                return null;
+            distance--;
+            if (distance != 0 && nextTile.pawnHere != null)
+                return null;
         }
+        while (distance > 0);
 
         if (nextTile.pawnHere == null)
             return nextTile;
@@ -131,5 +139,26 @@ public class Pawn : MonoBehaviour
         for (int i = 0; i < possibleTiles.Count; i++)
             if (possibleTiles[i] != null)
                 possibleTiles[i].DisableButton();
+    }
+
+    [PunRPC]
+    public void Death()
+    {
+        switch (myColor)
+        {
+            case PawnColor.White:
+                Manager.instance.whitePawns.Remove(this);
+                break;
+            case PawnColor.Blue:
+                Manager.instance.bluePawns.Remove(this);
+                break;
+            case PawnColor.Black:
+                Manager.instance.blackPawns.Remove(this);
+                break;
+            case PawnColor.Red:
+                Manager.instance.redPawns.Remove(this);
+                break;
+        }
+        Destroy(this.gameObject);
     }
 }

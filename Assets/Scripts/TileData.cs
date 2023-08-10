@@ -12,9 +12,9 @@ public class TileData : MonoBehaviour
     bool enableBorder = false;
     [HideInInspector] public Player choosingplayer;
 
-    [HideInInspector] public int row;
-    [HideInInspector] public int column;
-    [HideInInspector] public int position;
+    public int row;
+    public int column;
+    public int position;
 
     [HideInInspector] public TileData up;
     [HideInInspector] public TileData upLeft;
@@ -50,8 +50,7 @@ public class TileData : MonoBehaviour
     {
         if (pawnHere != null)
         {
-            PhotonNetwork.Destroy(pawnHere.pv);
-            Debug.Log($"{pawnHere.name} is dead");
+            pawnHere.pv.RPC("Death", RpcTarget.All);
         }
     }
 
@@ -59,6 +58,7 @@ public class TileData : MonoBehaviour
     {
         choosingplayer = player;
         enableBorder = true;
+        border.gameObject.SetActive(true);
         button.interactable = true;
     }
 
@@ -66,6 +66,7 @@ public class TileData : MonoBehaviour
     {
         button.interactable = false;
         enableBorder = false;
+        border.gameObject.SetActive(false);
     }
 
     public void SendName()

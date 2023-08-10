@@ -70,7 +70,7 @@ public class Manager : MonoBehaviour, IOnEventCallback
                 nextTile.row = i;
                 nextTile.column = j;
                 nextTile.name = $"{i}:{j}";
-                nextTile.position = i+j;
+                nextTile.position = (i * 16) + j;
             }
         }
 
@@ -182,15 +182,19 @@ public class Manager : MonoBehaviour, IOnEventCallback
             yield return new WaitForSeconds(0.5f);
             for (int i = 0; i < playerOrderGame.Count; i++)
             {
+                IndicatorScript.instance.pv.RPC("ChangeIndicator", RpcTarget.All, (0));
                 yield return playerOrderGame[0].TakeTurnRPC("White");
                 yield return new WaitForSeconds(0.5f);
 
+                IndicatorScript.instance.pv.RPC("ChangeIndicator", RpcTarget.All, (1));
                 yield return playerOrderGame[1].TakeTurnRPC("Blue");
                 yield return new WaitForSeconds(0.5f);
 
+                IndicatorScript.instance.pv.RPC("ChangeIndicator", RpcTarget.All, (2));
                 yield return playerOrderGame[0].TakeTurnRPC("Black");
                 yield return new WaitForSeconds(0.5f);
 
+                IndicatorScript.instance.pv.RPC("ChangeIndicator", RpcTarget.All, (3));
                 yield return playerOrderGame[1].TakeTurnRPC("Red");
                 yield return new WaitForSeconds(0.5f);
             }
@@ -221,6 +225,7 @@ public class Manager : MonoBehaviour, IOnEventCallback
             playerOrderGame.Add(GameObject.Find(playername.NickName).GetComponent<Player>());
             playerOrderPhoton.Add(playername);
 
+            IndicatorScript.instance.AssignPlayerName(playerposition, playername.NickName);
         }
         else if (photonEvent.Code == GameOverEvent)
         {

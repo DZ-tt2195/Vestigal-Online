@@ -37,21 +37,21 @@ public class Player : MonoBehaviourPunCallbacks
 
     public IEnumerator TakeTurnRPC(string color)
     {
-        pv.RPC("TakeTurn", this.photonplayer, color);
+        pv.RPC("TakeTurn", pv.Controller, color);
         pv.RPC("TurnStart", RpcTarget.All);
         while (turnon)
             yield return null;
     }
 
     [PunRPC]
-    void TurnStart()
+    public void TurnStart()
     {
         turnon = true;
         Manager.instance.currentPlayer = this;
     }
 
     [PunRPC]
-    void TurnOver()
+    public void TurnOver()
     {
         turnon = false;
     }
@@ -71,6 +71,7 @@ public class Player : MonoBehaviourPunCallbacks
         yield return null;
         if (pv.IsMine)
         {
+            Debug.Log($"{this.name} takes their turn");
             pv.RPC("TurnStart", RpcTarget.All);
             pv.RPC("WaitForPlayer", RpcTarget.Others, this.name);
 

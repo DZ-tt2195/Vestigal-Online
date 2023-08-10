@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.0001, y: 0.4914}
-  m_SizeDelta: {x: 50.8599, y: 77.3955}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9130589234301721918
 CanvasRenderer:
@@ -138,7 +138,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.29803923}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.4}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -167,12 +167,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b9af2048324e4a029e476a1f02c2586, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pawnHere: {fileID: 0}
+  button: {fileID: 0}
+  choosingplayer: {fileID: 0}
   row: 0
   column: 0
   position: 0
   up: {fileID: 0}
+  upLeft: {fileID: 0}
+  upRight: {fileID: 0}
   left: {fileID: 0}
   down: {fileID: 0}
+  downLeft: {fileID: 0}
+  downRight: {fileID: 0}
   right: {fileID: 0}
 --- !u!114 &1264845853023382132
 MonoBehaviour:
