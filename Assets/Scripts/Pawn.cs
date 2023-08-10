@@ -12,6 +12,8 @@ public class Pawn : MonoBehaviour
     [HideInInspector] public PhotonView pv;
     [HideInInspector] public TileData currenttile;
 
+    public Flag carryingFlag;
+
     private void Awake()
     {
         pv = GetComponent<PhotonView>();
@@ -34,6 +36,31 @@ public class Pawn : MonoBehaviour
         this.transform.localScale = new Vector2(0.3f, 0.3f);
         this.GetComponent<RectTransform>().localPosition = new Vector2(0, 0);
         this.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 0);
+
+        if (newTile.flagHere != null)
+        {
+            Flag.FlagColor compare = newTile.flagHere.myColor;
+
+            if (myColor == PawnColor.White && (compare == Flag.FlagColor.White || compare == Flag.FlagColor.Black))
+                carryingFlag = newTile.flagHere;
+            else if (myColor == PawnColor.Black && (compare == Flag.FlagColor.White || compare == Flag.FlagColor.Black))
+                carryingFlag = newTile.flagHere;
+            else if (myColor == PawnColor.Blue && (compare == Flag.FlagColor.Blue || compare == Flag.FlagColor.Red))
+                carryingFlag = newTile.flagHere;
+            else if (myColor == PawnColor.Red && (compare == Flag.FlagColor.Blue || compare == Flag.FlagColor.Red))
+                carryingFlag = newTile.flagHere;
+
+            if (carryingFlag != null)
+                Debug.Log($"{this.name} got a flag");
+        }
+
+        if (this.carryingFlag)
+            carryingFlag.NewPosition(newTile.position);
+
+        if ((myColor == PawnColor.White || myColor == PawnColor.Black) && carryingFlag != null && currenttile.row == 15)
+            Manager.instance.GameDone($"{Manager.instance.playerOrderGame[0].name} has won!");
+        else if ((myColor == PawnColor.Blue || myColor == PawnColor.Red) && carryingFlag != null && currenttile.row == 0)
+            Manager.instance.GameDone($"{Manager.instance.playerOrderGame[1].name} has won!");
     }
 
     TileData Adjacent(TileData tile)
@@ -144,6 +171,9 @@ public class Pawn : MonoBehaviour
     [PunRPC]
     public void Death()
     {
+        if (carryingFlag != null)
+            carryingFlag.Death();
+
         switch (myColor)
         {
             case PawnColor.White:

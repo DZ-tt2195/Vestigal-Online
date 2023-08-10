@@ -33,6 +33,13 @@ public class Player : MonoBehaviourPunCallbacks
     {
         this.name = pv.Owner.NickName;
         this.transform.SetParent(storePlayers);
+        if (this.pv.AmController)
+            resign.onClick.AddListener(ResignTime);
+    }
+
+    public void ResignTime()
+    {
+        Manager.instance.GameDone($"{this.name} has resigned.");
     }
 
     public IEnumerator TakeTurnRPC(string color)
@@ -74,32 +81,34 @@ public class Player : MonoBehaviourPunCallbacks
             Debug.Log($"{this.name} takes their turn");
             pv.RPC("TurnStart", RpcTarget.All);
             pv.RPC("WaitForPlayer", RpcTarget.Others, this.name);
-
-            switch (color)
-            {
-                case "White":
-                    yield return MovePawn(Manager.instance.whitePawns);
-                    break;
-                case "Blue":
-                    yield return MovePawn(Manager.instance.bluePawns);
-                    break;
-                case "Black":
-                    yield return MovePawn(Manager.instance.blackPawns);
-                    break;
-                case "Red":
-                    yield return MovePawn(Manager.instance.redPawns);
-                    break;
-            }
-
+            yield return MovePawn(color);
             photonView.RPC("TurnOver", RpcTarget.All);
         }
     }
 
-    IEnumerator MovePawn(List<Pawn> availablePawns)
+    IEnumerator MovePawn(string color)
     {
+        Manager.instance.instructions.text = $"Choose a {color} pawn to move.";
+
+        List<Pawn> availablePawns = new List<Pawn>();
+        switch (color)
+        {
+            case "White":
+                availablePawns = (Manager.instance.whitePawns);
+                break;
+            case "Blue":
+                availablePawns = (Manager.instance.bluePawns);
+                break;
+            case "Black":
+                availablePawns = (Manager.instance.blackPawns);
+                break;
+            case "Red":
+                availablePawns = (Manager.instance.redPawns);
+                break;
+        }
+
         if (availablePawns.Count > 0)
         {
-            Manager.instance.instructions.text = "Choose a pawn to move.";
             for (int i = 0; i < availablePawns.Count; i++)
                 availablePawns[i].currenttile.EnableButton(this);
 
@@ -115,12 +124,12 @@ public class Player : MonoBehaviourPunCallbacks
 
             if (chosenTile == chosenPawn.currenttile)
             {
-                yield return MovePawn(availablePawns);
+                yield return MovePawn(color);
             }
             else
             {
                 chosenPawn.pv.RPC("NewPosition", RpcTarget.All, chosenTile.position);
             }
-        }    
+        }
     }
 }

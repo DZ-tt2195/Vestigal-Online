@@ -7,6 +7,8 @@ using Photon.Pun;
 public class TileData : MonoBehaviour
 {
     [HideInInspector] public Pawn pawnHere;
+    [HideInInspector] public Flag flagHere;
+
     [HideInInspector] public Button button;
     [HideInInspector] Image border;
     bool enableBorder = false;

@@ -32,6 +32,7 @@ public class Manager : MonoBehaviour, IOnEventCallback
     public Button leaveRoom;
 
     readonly public List<TileData> listofTiles = new List<TileData>();
+    public List<Flag> listofFlags = new List<Flag>();
     public List<Pawn> whitePawns = new List<Pawn>();
     public List<Pawn> blackPawns = new List<Pawn>();
     public List<Pawn> bluePawns = new List<Pawn>();
@@ -111,6 +112,11 @@ public class Manager : MonoBehaviour, IOnEventCallback
         redPawns[2].NewPosition(CalculatePosition(12, 3));
         redPawns[3].NewPosition(CalculatePosition(13, 13));
         redPawns[4].NewPosition(CalculatePosition(15, 15));
+
+        listofFlags[0].NewPosition(CalculatePosition(8, 4));
+        listofFlags[1].NewPosition(CalculatePosition(7, 4));
+        listofFlags[2].NewPosition(CalculatePosition(8, 11));
+        listofFlags[3].NewPosition(CalculatePosition(7, 11));
 
         StartCoroutine(WaitForPlayer());
     }
@@ -233,7 +239,20 @@ public class Manager : MonoBehaviour, IOnEventCallback
             string endgame = (string)data[0];
             leaveRoom.gameObject.SetActive(true);
             instructions.text = endgame;
+
+            StopAllCoroutines();
+            for (int i = 0; i < playerOrderGame.Count; i++)
+                playerOrderGame[i].StopAllCoroutines();
         }
+    }
+
+    public void GameDone(string text)
+    {
+        object[] lol = new object[1];
+        lol[0] = text;
+        RaiseEventOptions raiseEventOptions = new RaiseEventOptions
+        { Receivers = ReceiverGroup.All };
+        PhotonNetwork.RaiseEvent(GameOverEvent, lol, raiseEventOptions, SendOptions.SendReliable);
     }
 
     private void OnEnable()
