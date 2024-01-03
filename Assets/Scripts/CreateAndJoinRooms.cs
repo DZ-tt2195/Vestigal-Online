@@ -8,19 +8,18 @@ using TMPro;
 
 public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
 {
-    public TMP_InputField create;
-    public TMP_InputField join;
-    public TMP_InputField username;
-    public TMP_Text error;
-    public Toggle fullScreen;
+    [SerializeField] TMP_InputField create;
+    [SerializeField] TMP_InputField join;
+    [SerializeField] TMP_InputField username;
+    [SerializeField] TMP_Text error;
+    [SerializeField] Toggle fullScreen;
 
     private void Start()
     {
         error.gameObject.SetActive(false);
-        if (PlayerPrefs.GetString("Username") != "")
-        {
+        if (PlayerPrefs.HasKey("Username"))
             username.text = PlayerPrefs.GetString("Username");
-        }
+
         fullScreen.isOn = Screen.fullScreen;
         fullScreen.onValueChanged.AddListener(delegate { WindowMode(); });
     }
@@ -36,11 +35,6 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
         error.text = x;
         yield return new WaitForSeconds(3f);
         error.gameObject.SetActive(false);
-    }
-
-    public void NewUsername(string input)
-    {
-        PlayerPrefs.SetString("Username", input);
     }
 
     public void CreateRoom()
@@ -89,6 +83,7 @@ public class CreateAndJoinRooms : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
+        PlayerPrefs.SetString("Username", username.text);
         PhotonNetwork.LoadLevel("2. Game");
     }
 }

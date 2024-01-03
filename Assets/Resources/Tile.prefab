@@ -31,12 +31,11 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8580189104793700437}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 50, y: 50}
+  m_SizeDelta: {x: 110, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9130589234301721918
 CanvasRenderer:
@@ -110,7 +109,6 @@ RectTransform:
   m_Children:
   - {fileID: 4758174562777111773}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -168,6 +166,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pawnHere: {fileID: 0}
+  flagHere: {fileID: 0}
   button: {fileID: 0}
   choosingplayer: {fileID: 0}
   row: 0

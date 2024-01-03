@@ -2,30 +2,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using MyBox;
 using Photon.Pun;
 
 public class TileData : MonoBehaviour
 {
-    [HideInInspector] public Pawn pawnHere;
-    [HideInInspector] public Flag flagHere;
+    [ReadOnly] public Pawn pawnHere;
+    [ReadOnly] public Flag flagHere;
 
-    [HideInInspector] public Button button;
-    [HideInInspector] Image border;
+    [ReadOnly] public Button button;
+    [ReadOnly] Image border;
     bool enableBorder = false;
-    [HideInInspector] public Player choosingplayer;
+    [ReadOnly] public Player choosingplayer;
 
-    public int row;
-    public int column;
-    public int position;
+    [ReadOnly] public int row;
+    [ReadOnly] public int column;
+    [ReadOnly] public int position;
 
-    [HideInInspector] public TileData up;
-    [HideInInspector] public TileData upLeft;
-    [HideInInspector] public TileData upRight;
-    [HideInInspector] public TileData left;
-    [HideInInspector] public TileData down;
-    [HideInInspector] public TileData downLeft;
-    [HideInInspector] public TileData downRight;
-    [HideInInspector] public TileData right;
+    [ReadOnly] public TileData up;
+    [ReadOnly] public TileData upLeft;
+    [ReadOnly] public TileData upRight;
+    [ReadOnly] public TileData left;
+    [ReadOnly] public TileData down;
+    [ReadOnly] public TileData downLeft;
+    [ReadOnly] public TileData downRight;
+    [ReadOnly] public TileData right;
 
     private void Awake()
     {
@@ -40,11 +41,11 @@ public class TileData : MonoBehaviour
     {
         if (enableBorder)
         {
-            border.color = new Color(1, 1, 1, Manager.instance.opacity);
+            border.SetAlpha( Manager.instance.opacity);
         }
         else
         {
-            border.color = new Color(1, 1, 1, 0);
+            border.SetAlpha(0);
         }
     }
 
@@ -52,7 +53,7 @@ public class TileData : MonoBehaviour
     {
         if (pawnHere != null)
         {
-            pawnHere.pv.RPC("Death", RpcTarget.All);
+            pawnHere.DeathRPC();
         }
     }
 

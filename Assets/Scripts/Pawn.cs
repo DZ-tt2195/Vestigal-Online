@@ -3,39 +3,44 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
+using MyBox;
 
 public class Pawn : MonoBehaviour
 {
     public enum PawnColor { White, Blue, Black, Red };
     public PawnColor myColor;
 
-    [HideInInspector] public PhotonView pv;
-    [HideInInspector] public TileData currenttile;
-
-    public Flag carryingFlag;
+    [ReadOnly] PhotonView pv;
+    [ReadOnly] public TileData currenttile;
+    [ReadOnly] public Flag carryingFlag;
 
     private void Awake()
     {
         pv = GetComponent<PhotonView>();
     }
 
+    public void NewPositionRPC(int position)
+    {
+        if (PhotonNetwork.IsConnected)
+            this.pv.RPC("NewPosition", RpcTarget.All, position);
+        else
+            NewPosition(position);
+    }
+
     [PunRPC]
-    public void NewPosition(int position)
+    void NewPosition(int position)
     {
         if (currenttile != null)
             currenttile.pawnHere = null;
 
-        TileData newTile = Manager.instance.listofTiles[position];
+        TileData newTile = Manager.instance.listOfTiles[position];
         newTile.DestroyPawnOnThis();
         newTile.pawnHere = this;
 
         this.transform.SetParent(newTile.transform);
         this.transform.SetSiblingIndex(1);
         currenttile = newTile;
-
-        this.transform.localScale = new Vector2(0.3f, 0.3f);
-        this.GetComponent<RectTransform>().localPosition = new Vector2(0, 0);
-        this.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, 0);
+        this.transform.localPosition = new Vector3(0, 0, 0);
 
         if (newTile.flagHere != null)
         {
@@ -49,18 +54,15 @@ public class Pawn : MonoBehaviour
                 carryingFlag = newTile.flagHere;
             else if (myColor == PawnColor.Red && (compare == Flag.FlagColor.Blue || compare == Flag.FlagColor.Red))
                 carryingFlag = newTile.flagHere;
-
-            if (carryingFlag != null)
-                Debug.Log($"{this.name} got a flag");
         }
 
         if (this.carryingFlag)
-            carryingFlag.NewPosition(newTile.position);
+            carryingFlag.NewPositionRPC(newTile.position);
 
         if ((myColor == PawnColor.White || myColor == PawnColor.Black) && carryingFlag != null && currenttile.row == 15)
-            Manager.instance.GameDone($"{Manager.instance.playerOrderGame[0].name} has won!");
+            Manager.instance.Finished($"{Manager.instance.playerOrderGame[0].name} has won!");
         else if ((myColor == PawnColor.Blue || myColor == PawnColor.Red) && carryingFlag != null && currenttile.row == 0)
-            Manager.instance.GameDone($"{Manager.instance.playerOrderGame[1].name} has won!");
+            Manager.instance.Finished($"{Manager.instance.playerOrderGame[1].name} has won!");
     }
 
     TileData Adjacent(TileData tile)
@@ -88,6 +90,7 @@ public class Pawn : MonoBehaviour
     {
         int distance = 0;
         TileData nextTile = Manager.instance.GetPosition(currenttile.row + row, currenttile.column + col);
+
         while (true)
         {
             distance++;
@@ -113,7 +116,9 @@ public class Pawn : MonoBehaviour
         while (distance > 0);
 
         if (nextTile.pawnHere == null)
+        {
             return nextTile;
+        }
         else
         {
             PawnColor compare = nextTile.pawnHere.myColor;
@@ -134,26 +139,28 @@ public class Pawn : MonoBehaviour
     public IEnumerator Move(Player currPlayer)
     {
         Manager.instance.instructions.text = "Move the pawn. (To undo, click the pawn itself.)";
-        List<TileData> possibleTiles = new List<TileData>();
-        possibleTiles.Add(currenttile);
+        List<TileData> possibleTiles = new()
+        {
+            currenttile,
 
-        possibleTiles.Add(Adjacent(currenttile.up));
-        possibleTiles.Add(Adjacent(currenttile.down));
-        possibleTiles.Add(Adjacent(currenttile.left));
-        possibleTiles.Add(Adjacent(currenttile.right));
-        possibleTiles.Add(Adjacent(currenttile.upLeft));
-        possibleTiles.Add(Adjacent(currenttile.upRight));
-        possibleTiles.Add(Adjacent(currenttile.downLeft));
-        possibleTiles.Add(Adjacent(currenttile.downRight));
+            Adjacent(currenttile.up),
+            Adjacent(currenttile.down),
+            Adjacent(currenttile.left),
+            Adjacent(currenttile.right),
+            Adjacent(currenttile.upLeft),
+            Adjacent(currenttile.upRight),
+            Adjacent(currenttile.downLeft),
+            Adjacent(currenttile.downRight),
 
-        possibleTiles.Add(ScanTiles(0, -1));
-        possibleTiles.Add(ScanTiles(0, 1));
-        possibleTiles.Add(ScanTiles(-1, 0));
-        possibleTiles.Add(ScanTiles(1, 0));
-        possibleTiles.Add(ScanTiles(-1, -1));
-        possibleTiles.Add(ScanTiles(-1, 1));
-        possibleTiles.Add(ScanTiles(1, -1));
-        possibleTiles.Add(ScanTiles(1, 1));
+            ScanTiles(0, -1),
+            ScanTiles(0, 1),
+            ScanTiles(-1, 0),
+            ScanTiles(1, 0),
+            ScanTiles(-1, -1),
+            ScanTiles(-1, 1),
+            ScanTiles(1, -1),
+            ScanTiles(1, 1)
+        };
 
         for (int i = 0; i < possibleTiles.Count; i++)
             if (possibleTiles[i] != null)
@@ -168,8 +175,16 @@ public class Pawn : MonoBehaviour
                 possibleTiles[i].DisableButton();
     }
 
+    public void DeathRPC()
+    {
+        if (PhotonNetwork.IsConnected)
+            this.pv.RPC("Death", RpcTarget.All);
+        else
+            Death();
+    }
+
     [PunRPC]
-    public void Death()
+    void Death()
     {
         if (carryingFlag != null)
             carryingFlag.Death();

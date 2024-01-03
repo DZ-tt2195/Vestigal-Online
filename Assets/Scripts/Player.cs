@@ -2,25 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-using TMPro;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
-using ExitGames.Client.Photon;
-using Photon.Realtime;
-using System.Linq;
+using MyBox;
 
 public class Player : MonoBehaviourPunCallbacks
 {
-    [HideInInspector] public PhotonView pv;
-    [HideInInspector] public int playerposition;
-    [HideInInspector] public Photon.Realtime.Player photonplayer;
+    [ReadOnly] public PhotonView pv;
+    [ReadOnly] public int playerposition;
+    [ReadOnly] public Photon.Realtime.Player photonplayer;
 
     Button resign;
     Transform storePlayers;
 
-    public bool waiting;
-    public bool turnon;
-    [HideInInspector] public TileData chosenTile;
+    [ReadOnly] public bool waiting;
+    [ReadOnly] public bool turnon;
+    [ReadOnly] public TileData chosenTile;
 
     private void Awake()
     {
@@ -31,40 +27,49 @@ public class Player : MonoBehaviourPunCallbacks
 
     private void Start()
     {
-        this.name = pv.Owner.NickName;
+        if (PhotonNetwork.IsConnected)
+            this.name = pv.Owner.NickName;
         this.transform.SetParent(storePlayers);
-        if (this.pv.AmController)
+        if (!PhotonNetwork.IsConnected && this.pv.AmController)
             resign.onClick.AddListener(ResignTime);
     }
 
-    public void ResignTime()
+    void ResignTime()
     {
-        Manager.instance.GameDone($"{this.name} has resigned.");
+        if (PhotonNetwork.IsConnected)
+        {
+            Manager.instance.Finished($"{this.name} has resigned.");
+        }
+        else
+        {
+            Manager.instance.Finished($"{Manager.instance.currentPlayer.name} has resigned.");
+        }
     }
 
     public IEnumerator TakeTurnRPC(string color)
     {
-        pv.RPC("TakeTurn", pv.Controller, color);
-        pv.RPC("TurnStart", RpcTarget.All);
+        if (PhotonNetwork.IsConnected) pv.RPC("TurnStart", RpcTarget.All); else TurnStart();
+        if (PhotonNetwork.IsConnected) pv.RPC("TakeTurn", pv.Controller, color); else yield return TakeTurn(color);
+
         while (turnon)
             yield return null;
     }
 
     [PunRPC]
-    public void TurnStart()
+    void TurnStart()
     {
         turnon = true;
         Manager.instance.currentPlayer = this;
     }
 
     [PunRPC]
-    public void TurnOver()
+    void TurnOver()
     {
         turnon = false;
     }
 
     [PunRPC]
-    public IEnumerator WaitForPlayer(string playername)
+    IEnumerator WaitForPlayer(string playername)
     {
         waiting = true;
         Manager.instance.instructions.text = $"Waiting for {playername}...";
@@ -73,22 +78,16 @@ public class Player : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    public IEnumerator TakeTurn(string color)
+    IEnumerator TakeTurn(string color)
     {
-        yield return null;
-        if (pv.IsMine)
-        {
-            Debug.Log($"{this.name} takes their turn");
-            pv.RPC("TurnStart", RpcTarget.All);
-            pv.RPC("WaitForPlayer", RpcTarget.Others, this.name);
-            yield return MovePawn(color);
-            photonView.RPC("TurnOver", RpcTarget.All);
-        }
+        if (PhotonNetwork.IsConnected) pv.RPC("WaitForPlayer", RpcTarget.Others, this.name);
+        yield return MovePawn(color);
+        if (PhotonNetwork.IsConnected) photonView.RPC("TurnOver", RpcTarget.All); else TurnOver();
     }
 
     IEnumerator MovePawn(string color)
     {
-        Manager.instance.instructions.text = $"Choose a {color} pawn to move.";
+        Manager.instance.instructions.text = $"{this.name}: Choose a {color} pawn to move.";
 
         List<Pawn> availablePawns = new List<Pawn>();
         switch (color)
@@ -128,7 +127,7 @@ public class Player : MonoBehaviourPunCallbacks
             }
             else
             {
-                chosenPawn.pv.RPC("NewPosition", RpcTarget.All, chosenTile.position);
+                chosenPawn.NewPositionRPC(chosenTile.position);
             }
         }
     }

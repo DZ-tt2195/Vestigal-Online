@@ -16,18 +16,17 @@ public class ServerAnalytics : MonoBehaviour
         datatext = GameObject.Find("Server Data").GetComponent<TMP_Text>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         datatext.text =
-            $"Frames/Second: {CalculateFrames()}" +
-            $"\nServer Ping: {PhotonNetwork.GetPing()}";
+            $"Frames/Second: {CalculateFrames()}";
 
         if (PhotonNetwork.InRoom)
         {
             datatext.text +=
-                "\nRoom: " + PhotonNetwork.CurrentRoom.Name +
-                "\nHost: " + PhotonNetwork.MasterClient.NickName;
+                $"\nServer Ping: {PhotonNetwork.GetPing()}" +
+                $"\nRoom: {PhotonNetwork.CurrentRoom.Name}" +
+                $"\nHost: {PhotonNetwork.MasterClient.NickName}";
         }
 
     }
@@ -35,7 +34,7 @@ public class ServerAnalytics : MonoBehaviour
     int CalculateFrames()
     {
         framearray[lastframe] = Time.deltaTime;
-        lastframe = (lastframe + 1);
+        lastframe++;
         if (lastframe == 60)
         {
             lastframe = 0;

@@ -1,19 +1,25 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine;
 using Photon.Pun;
+using MyBox;
+
+[System.Serializable]
+public class Indicator
+{
+    public Image border;
+    public TMP_Text numPawns;
+    public TMP_Text playerText;
+}
 
 public class IndicatorScript : MonoBehaviour
 {
-    [HideInInspector] public PhotonView pv;
+    [ReadOnly] PhotonView pv;
     Image toBlink;
 
     public static IndicatorScript instance;
-    public List<Image> border = new List<Image>();
-    public List<TMP_Text> playerText = new List<TMP_Text>();
-    public List<TMP_Text> pawnText = new List<TMP_Text>();
+    [SerializeField] List<Indicator> allIndicators = new List<Indicator>();
 
     private void Awake()
     {
@@ -23,34 +29,35 @@ public class IndicatorScript : MonoBehaviour
 
     private void FixedUpdate()
     {
-        for (int i = 0; i<border.Count; i++)
-        {
-            if (border[i] == toBlink)
-                border[i].color = new Color(0.7f, 0.7f, 0.7f, Manager.instance.opacity);
-            else
-                border[i].color = new Color(0.7f, 0.7f, 0.7f, 0);
-        }
+        foreach (Indicator indicators in allIndicators)
+            indicators.border.SetAlpha(indicators.border == toBlink ? Manager.instance.opacity : 0);
 
         if (toBlink != null)
-        {
-            toBlink.color = new Color(1, 1, 1, Manager.instance.opacity);
-        }
+            toBlink.SetAlpha(Manager.instance.opacity);
 
-        pawnText[0].text = Manager.instance.whitePawns.Count.ToString();
-        pawnText[1].text = Manager.instance.bluePawns.Count.ToString();
-        pawnText[2].text = Manager.instance.blackPawns.Count.ToString();
-        pawnText[3].text = Manager.instance.redPawns.Count.ToString();
+        allIndicators[0].numPawns.text = Manager.instance.whitePawns.Count.ToString();
+        allIndicators[1].numPawns.text = Manager.instance.bluePawns.Count.ToString();
+        allIndicators[2].numPawns.text = Manager.instance.blackPawns.Count.ToString();
+        allIndicators[3].numPawns.text = Manager.instance.redPawns.Count.ToString();
     }
 
     [PunRPC]
-    public void ChangeIndicator(int n)
+    void ChangeIndicator(int n)
     {
-        toBlink = border[n];
+        toBlink = allIndicators[n].border;
+    }
+
+    public void ChangeIndicatorRPC(int n)
+    {
+        if (PhotonNetwork.IsConnected)
+            this.pv.RPC("ChangeIndicator", RpcTarget.All, n);
+        else
+            ChangeIndicator(n);
     }
 
     public void AssignPlayerName(int n, string name)
     {
-        playerText[n].text = name;
-        playerText[n+2].text = name;
+        allIndicators[n].playerText.text = name;
+        allIndicators[n+2].playerText.text = name;
     }
 }
